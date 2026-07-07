@@ -1,0 +1,42 @@
+# =============================================
+# Students — Docker Compose
+# Uses global scaffold containers started by
+# the Scaffold Generator on boot.
+# Run: docker-compose up -d
+# =============================================
+
+services:
+  students-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: students-app
+    ports:
+      - "8101:8101"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_PORT=8101
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=scaffold-kafka:9092
+      - SPRING_KAFKA_LISTENER_MISSING_TOPICS_FATAL=false
+    networks:
+      - scaffold-net
+    restart: on-failure
+    depends_on:
+      - scaffold-kafka-check
+
+  # Health check — verifies global Kafka is reachable
+  scaffold-kafka-check:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: students-kafka-check
+    command: >
+      bash -c "i=0; until kafka-topics --bootstrap-server scaffold-kafka:9092 --list > /dev/null 2>&1; do
+        i=$$((i+1)); if [ $$i -ge 15 ]; then echo 'Kafka timeout — continuing anyway'; exit 0; fi;
+        echo 'Waiting for Kafka... ($$i/15)'; sleep 3; done; echo 'Kafka is ready'"
+    networks:
+      - scaffold-net
+    restart: "no"
+
+networks:
+  scaffold-net:
+    external: true
+    name: scaffold-net

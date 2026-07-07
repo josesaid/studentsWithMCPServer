@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Students · Microservice</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --bg: #0d1117; --surface: #161b22; --border: #30363d;
+      --accent: #58a6ff; --accent2: #3fb950; --danger: #f85149;
+      --text: #e6edf3; --muted: #8b949e; --radius: 8px;
+    }
+
+    /* Read theme from scaffold localStorage */
+    body.theme-light {
+      --bg: #f6f8fa; --surface: #ffffff; --border: #d0d7de;
+      --accent: #0969da; --accent2: #1a7f37; --danger: #cf222e;
+      --text: #1f2328; --muted: #656d76;
+    }
+    body.theme-enterprise {
+      --bg: #ffffff; --surface: #f4f6fb; --border: #dde3f0;
+      --accent: #1a3fa8; --accent2: #c8102e; --danger: #c8102e;
+      --text: #0d1b3e; --muted: #5a6a8a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+    /* Header */
+    .header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    body.theme-enterprise .header {
+      background: linear-gradient(135deg, #1a3fa8 0%, #0d2470 100%);
+      border-bottom: 3px solid #c8102e;
+    }
+    body.theme-enterprise .header * { color: #fff !important; }
+    body.theme-enterprise .header .badge { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.15); }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .app-name { font-size: 20px; font-weight: 700; color: var(--text); }
+    .badge {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      background: var(--bg); border: 1px solid var(--border);
+      color: var(--muted); padding: 3px 10px; border-radius: 4px;
+    }
+    .running-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--accent2); font-weight: 600;
+    }
+    .running-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .scaffold-link {
+      font-size: 12px; color: var(--muted); text-decoration: none;
+      display: flex; align-items: center; gap: 5px;
+      border: 1px solid var(--border); padding: 5px 12px; border-radius: 6px;
+      transition: all .15s;
+    }
+    .scaffold-link:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Main */
+    main { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+
+    /* Info cards */
+    .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+    .info-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+    }
+    .info-card .ic-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 5px; }
+    .info-card .ic-value { font-size: 15px; font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .info-card .ic-value.green { color: var(--accent2); }
+
+    /* Section */
+    .section { margin-bottom: 24px; }
+    .section-title {
+      font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .8px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Endpoints table */
+    .endpoints-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .endpoints-table th {
+      text-align: left; padding: 8px 14px; background: var(--surface);
+      color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .5px; border-bottom: 1px solid var(--border);
+    }
+    .endpoints-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+    .endpoints-table tr:last-child td { border-bottom: none; }
+    .endpoints-table tr:hover td { background: var(--surface); }
+    .method {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+      padding: 3px 8px; border-radius: 4px; display: inline-block; min-width: 58px; text-align: center;
+    }
+    .method.POST   { background: #1a2d1a; color: #3fb950; border: 1px solid #3fb950; }
+    .method.GET    { background: #1a2332; color: #58a6ff; border: 1px solid #58a6ff; }
+    .method.PUT    { background: #2a2010; color: #d29922; border: 1px solid #d29922; }
+    .method.DELETE { background: #3a1a1a; color: #f85149; border: 1px solid #f85149; }
+    .endpoint-url  { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); }
+    .endpoint-desc { font-size: 12px; color: var(--muted); }
+    .try-link {
+      font-size: 11px; color: var(--accent); text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .try-link:hover { text-decoration: underline; }
+
+    /* Stack info */
+    .stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stack-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .stack-icon { font-size: 20px; }
+    .stack-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .stack-value { font-size: 13px; font-weight: 600; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+    /* Quick links */
+    .quick-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .quick-link {
+      display: flex; align-items: center; gap: 7px; padding: 10px 16px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      text-decoration: none; color: var(--text); font-size: 13px; font-weight: 500;
+      transition: all .15s;
+    }
+    .quick-link:hover { border-color: var(--accent); color: var(--accent); background: var(--bg); }
+    .quick-link .ql-icon { font-size: 16px; }
+
+    /* curl example */
+    .curl-box {
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--accent); white-space: pre; overflow-x: auto; line-height: 1.7;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px; background: var(--surface);
+      border: 1px solid var(--border); color: var(--muted); font-size: 11px;
+      padding: 3px 8px; border-radius: 4px; cursor: pointer; transition: all .15s;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span class="app-name">Students</span>
+    <span class="badge">v1.0.1</span>
+    <span class="badge">H2</span>
+    <div class="running-badge">
+      <span class="running-dot"></span> Running on :"8101"
+    </div>
+  </div>
+  <a class="scaffold-link" href="http://localhost:8080" target="_blank">
+    ⚙️ Scaffold Generator
+  </a>
+</div>
+
+<main>
+
+  <!-- Info cards -->
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="ic-label">Port</div>
+      <div class="ic-value green">"8101"</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Author</div>
+      <div class="ic-value" style="font-size:12px">Jose Said</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Spring Boot</div>
+      <div class="ic-value">3.4.1</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-label">Java</div>
+      <div class="ic-value">21</div>
+    </div>
+  </div>
+
+  <!-- Quick links -->
+  <div class="section">
+    <div class="section-title">Quick Links</div>
+    <div class="quick-links">
+      <a class="quick-link" href="http://localhost:"8101"/h2-console" target="_blank">
+        <span class="ql-icon">🗄</span> H2 Console
+      </a>
+      <a class="quick-link" href="http://localhost:"8101"/api/v1/studentss" target="_blank">
+        <span class="ql-icon">🔌</span> API Endpoint
+      </a>
+      <a class="quick-link" href="http://localhost:8080" target="_blank">
+        <span class="ql-icon">⚙️</span> Scaffold Generator
+      </a>
+    </div>
+  </div>
+
+  <!-- Endpoints -->
+  <div class="section">
+    <div class="section-title">REST Endpoints · /api/v1/studentss</div>
+    <table class="endpoints-table">
+      <thead>
+        <tr>
+          <th>Method</th><th>URL</th><th>Description</th><th>Try it</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method POST">POST</span></td>
+          <td><span class="endpoint-url">/api/v1/studentss</span></td>
+          <td class="endpoint-desc">Create a new Students</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="method GET">GET</span></td>
+          <td><span class="endpoint-url">/api/v1/studentss</span></td>
+          <td class="endpoint-desc">List all Studentss</td>
+          <td><a class="try-link" href="http://localhost:"8101"/api/v1/studentss" target="_blank">↗ Open</a></td>
+        </tr>
+        <tr>
+          <td><span class="method GET">GET</span></td>
+          <td><span class="endpoint-url">/api/v1/studentss/{id}</span></td>
+          <td class="endpoint-desc">Get Students by ID</td>
+          <td><a class="try-link" href="http://localhost:"8101"/api/v1/studentss/1" target="_blank">↗ Open</a></td>
+        </tr>
+        <tr>
+          <td><span class="method PUT">PUT</span></td>
+          <td><span class="endpoint-url">/api/v1/studentss/{id}</span></td>
+          <td class="endpoint-desc">Update Students by ID</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="method DELETE">DELETE</span></td>
+          <td><span class="endpoint-url">/api/v1/studentss/{id}</span></td>
+          <td class="endpoint-desc">Delete Students by ID</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- cURL example -->
+  <div class="section">
+    <div class="section-title">cURL Example</div>
+    <div class="curl-box" id="curlBox">
+      <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('curlBox').innerText.replace('Copy','').trim())">Copy</button>curl -X GET http://localhost:"8101"/api/v1/studentss \
+  -H "Content-Type: application/json"</div>
+  </div>
+
+  <!-- Stack -->
+  <div class="section">
+    <div class="section-title">Tech Stack</div>
+    <div class="stack-grid">
+      <div class="stack-card">
+        <span class="stack-icon">🍃</span>
+        <div><div class="stack-label">Spring Boot</div><div class="stack-value">3.4.1</div></div>
+      </div>
+      <div class="stack-card">
+        <span class="stack-icon">☕</span>
+        <div><div class="stack-label">Java</div><div class="stack-value">21</div></div>
+      </div>
+      <div class="stack-card">
+        <span class="stack-icon">🗄</span>
+        <div><div class="stack-label">Database</div><div class="stack-value">H2</div></div>
+      </div>
+      <div class="stack-card">
+        <span class="stack-icon">📦</span>
+        <div><div class="stack-label">Packaging</div><div class="stack-value">JAR</div></div>
+      </div>
+      <div class="stack-card">
+        <span class="stack-icon">🏗</span>
+        <div><div class="stack-label">Architecture</div><div class="stack-value">Modular</div></div>
+      </div>
+      <div class="stack-card">
+        <span class="stack-icon">📋</span>
+        <div><div class="stack-label">Config</div><div class="stack-value">application.properties</div></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Inherit theme from Scaffold Generator
+  const theme = localStorage.getItem('sb_theme') || 'dark';
+  if (theme === 'light') document.body.classList.add('theme-light');
+  if (theme === 'enterprise') document.body.classList.add('theme-enterprise');
+</script>
+</body>
+</html>
