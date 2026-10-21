@@ -12,7 +12,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.mx.development.said</groupId>
+    <groupId>com.mx.development.jose</groupId>
     <artifactId>studentsWithMCPServer</artifactId>
     <version>1.0.1</version>
     <packaging>jar</packaging>

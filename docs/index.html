@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>studentsWithMCPServer</title>
+  <meta name="description" content="A Spring Boot 3.5 microservice that manages students and shows, end to end, how an MCP server (Model Context Protocol) can expose business logic as *tools* that a language model (Claude from Anthropic">
+  <!-- Theme: Terminal Amber (black background with amber phosphor text and accents). Each repository uses a different Pages theme. -->
+  <style>
+    :root { --bg: #0b0a06; --panel: #15120a; --fg: #ffd98a; --muted: #b8923f; --accent: #ffb000;
+  --border: #4a3608; --code: #1f1706; --font: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --head: #ffcc66; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--font);
+      padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+    main { max-width: 880px; margin: 0 auto; padding: 40px 0 64px; }
+    .hero { background: var(--panel); border: 2px solid var(--border); border-radius: 18px; padding: 28px; margin-bottom: 28px; }
+    h1 { font-size: 2.1rem; margin: 0 0 8px; color: var(--head); line-height: 1.2; }
+    h2 { font-size: 1.35rem; margin: 40px 0 12px; color: var(--head); border-bottom: 2px solid var(--border); padding-bottom: 6px; }
+    h3 { font-size: 1.1rem; margin: 26px 0 8px; color: var(--accent); }
+    p, li { color: var(--fg); }
+    a { color: var(--accent); font-weight: 600; }
+    .panel { background: var(--panel); border: 2px solid var(--border); border-radius: 14px; padding: 22px 26px; }
+    .wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .95rem; background: var(--panel); }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--head); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9rem; }
+    code { background: var(--code); padding: 1px 6px; border-radius: 5px; }
+    pre { background: var(--code); padding: 14px; border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; max-width: 100%; }
+    pre code { background: none; padding: 0; }
+    img { max-width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--border); }
+    .cta { display:inline-block; margin: 14px 10px 0 0; padding: 8px 16px; border: 2px solid var(--accent); border-radius: 10px; text-decoration: none; color: var(--accent); }
+    footer { margin-top: 48px; color: var(--muted); font-size: .85rem; border-top: 2px solid var(--border); padding-top: 14px; }
+
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) { --bg:#fff8e6; --panel:#fffdf4; --fg:#3b2a05; --muted:#7a5b1c; --accent:#a86a00; --border:#e8cf8a; --code:#fbf0cf; --head:#3b2a05; }
+    }
+    :root[data-theme="light"] { --bg:#fff8e6; --panel:#fffdf4; --fg:#3b2a05; --muted:#7a5b1c; --accent:#a86a00; --border:#e8cf8a; --code:#fbf0cf; --head:#3b2a05; }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <h1>studentsWithMCPServer</h1>
+    <p>A Spring Boot 3.5 microservice that manages students and shows, end to end, how an MCP server (Model Context Protocol) can expose business logic as *tools* that a language model (Claude from Anthropic) calls autonomously through *tool calling*.</p>
+    <a class="cta" href="https://github.com/josesaid/studentsWithMCPServer">View source on GitHub</a>
+    <a class="cta" href="https://josesaid.github.io/">Portfolio index</a>
+  </section>
+  <article class="panel">
+<p><strong>Project page:</strong> https://josesaid.github.io/studentsWithMCPServer/</p>
+<p>A <strong>Spring Boot 3.5</strong> microservice that manages students and shows, end to end, how an <strong>MCP server</strong> (<a href="https://modelcontextprotocol.io">Model Context Protocol</a>) can expose business logic as <em>tools</em> that a language model (<strong>Claude</strong> from Anthropic) calls autonomously through <em>tool calling</em>.</p>
+<p>The same project provides, without duplicating business logic:</p>
+<ul>
+<li>A classic <strong>REST API</strong> (<code>/api/v1/students</code>) documented with Swagger UI.</li>
+<li>An <strong>MCP server</strong> (Streamable HTTP transport on <code>/mcp</code>) that publishes 6 tools.</li>
+<li>An embedded <strong>MCP client</strong> and a <strong>Claude agent</strong> that consumes those tools and resolves natural-language instructions.</li>
+</ul>
+<hr />
+<h2>Table of contents</h2>
+<ul>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#stack">Stack</a></li>
+<li><a href="#project-structure">Project structure</a></li>
+<li><a href="#mcp-server-tools">MCP server tools</a></li>
+<li><a href="#rest-api">REST API</a></li>
+<li><a href="#running-the-application">Running the application</a></li>
+<li><a href="#end-to-end-demo">End-to-end demo</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#technical-note-why-the-server-first-exposed-0-tools">Technical note: why the server first exposed 0 tools</a></li>
+<li><a href="#docker">Docker</a></li>
+<li><a href="#testing">Testing</a></li>
+<li><a href="#known-limitations">Known limitations</a></li>
+</ul>
+<hr />
+<h2>Architecture</h2>
+<pre><code>REST clients ──► StudentsController ─┐
+                                     ├─► StudentsService ─► StudentsRepository ─► H2 (in memory)
+MCP tools ─────► StudentsMcpTools ───┘        (single business-logic layer)
+
+MCP server (/mcp, Streamable HTTP)
+  McpToolsConfig → List&lt;SyncToolSpecification&gt; → 6 registered tools
+
+MCP client (AppClientSample) ──► StudentCreationAgent ──► Claude
+  handshake + listTools()        (Spring AI tool calling)
+</code></pre>
+<p><strong>Key principle:</strong> REST endpoints and MCP tools both delegate to the same <code>StudentsService</code>. MCP and REST are two facades over the same core.</p>
+<hr />
+<h2>Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Version</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Java</td>
+<td>21</td>
+<td>Language</td>
+</tr>
+<tr>
+<td>Spring Boot</td>
+<td>3.5.15</td>
+<td>Application framework</td>
+</tr>
+<tr>
+<td>Spring AI</td>
+<td>1.1.8</td>
+<td>MCP server and client, Anthropic integration</td>
+</tr>
+<tr>
+<td>Spring Web (MVC)</td>
+<td>—</td>
+<td>REST API and MCP Streamable HTTP transport</td>
+</tr>
+<tr>
+<td>Spring Data JPA and Hibernate</td>
+<td>—</td>
+<td>Persistence</td>
+</tr>
+<tr>
+<td>H2</td>
+<td>runtime</td>
+<td>In-memory database (development)</td>
+</tr>
+<tr>
+<td>MapStruct</td>
+<td>1.6.3</td>
+<td>Entity to DTO mapping</td>
+</tr>
+<tr>
+<td>Lombok</td>
+<td>1.18.36</td>
+<td>Boilerplate reduction</td>
+</tr>
+<tr>
+<td>springdoc-openapi</td>
+<td>2.7.0</td>
+<td>Swagger UI and OpenAPI 3</td>
+</tr>
+<tr>
+<td>Anthropic Claude</td>
+<td><code>claude-sonnet-4-6</code></td>
+<td>Agent model</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Messaging:</strong> Not used in the application code. The Docker Compose file contains a Kafka health-check container and Kafka environment variables, but the application has no Kafka dependency.</p>
+<p><strong>Cloud:</strong> Not used. The agent calls the Anthropic API.</p>
+<hr />
+<h2>Project structure</h2>
+<pre><code>src/main/java/com/mx/development/jose/said/
+├── StudentsApplication.java             # Spring Boot entry point
+├── OpenApiConfig.java                   # Swagger / OpenAPI metadata
+├── controller/
+│   ├── StudentsController.java          # REST API /api/v1/students
+│   └── StudentsMcpDebugController.java  # Tool inspection over REST (/api/v1/mcp/tools)
+├── mcp/
+│   ├── StudentsMcpTools.java            # 6 @Tool methods that delegate to StudentsService
+│   └── McpToolsConfig.java              # Registers the tools on the MCP server (see technical note)
+├── demo/
+│   ├── AppClientSample.java             # CommandLineRunner that runs the end-to-end demo
+│   ├── StudentCreationAgent.java        # Sends the instruction and tools to Claude (tool calling)
+│   └── LoggingToolCallback.java         # Decorator that logs every tool invocation
+├── service/
+│   ├── StudentsService.java             # Business contract
+│   └── impl/StudentsServiceImpl.java    # Implementation
+├── repository/StudentsRepository.java   # Spring Data JPA
+├── mapper/StudentsMapper.java           # MapStruct entity to DTO
+├── model/Students.java                  # JPA entity
+├── dto/
+│   ├── StudentsRequestDTO.java          # Input, with Bean Validation
+│   └── StudentsResponseDTO.java         # Output
+└── exception/
+    ├── ResourceNotFoundException.java
+    └── GlobalExceptionHandler.java      # Centralized 404 handling
+</code></pre>
+<p>Tests live in <code>src/test/java/com/mx/development/jose/said/</code>.</p>
+<hr />
+<h2>MCP server tools</h2>
+<p>Defined in <code>StudentsMcpTools</code> with Spring AI's <code>@Tool</code> annotation. All of them delegate to <code>StudentsService</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Description</th>
+<th>Parameters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>create_student</code></td>
+<td>Creates a student</td>
+<td><code>firstName</code>, <code>lastName</code>, <code>email</code> (all required)</td>
+</tr>
+<tr>
+<td><code>get_student</code></td>
+<td>Gets a student by id</td>
+<td><code>id</code> (required)</td>
+</tr>
+<tr>
+<td><code>list_students</code></td>
+<td>Lists all students</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>update_student</code></td>
+<td>Updates first name, last name or email</td>
+<td><code>id</code>, <code>firstName</code>, <code>lastName</code>, <code>email</code></td>
+</tr>
+<tr>
+<td><code>delete_student</code></td>
+<td>Deletes a student by id</td>
+<td><code>id</code> (required)</td>
+</tr>
+<tr>
+<td><code>count_students</code></td>
+<td>Returns the total number of students</td>
+<td>none</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>MCP endpoint (JSON-RPC over Streamable HTTP): <code>http://localhost:8101/mcp</code></li>
+<li>Quick inspection over REST (no MCP client needed): <code>GET http://localhost:8101/api/v1/mcp/tools</code></li>
+</ul>
+<hr />
+<h2>REST API</h2>
+<p>Base path: <code>http://localhost:8101/api/v1/students</code></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/v1/students</code></td>
+<td>Creates a student</td>
+<td><code>201 Created</code> with <code>StudentsResponseDTO</code></td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/v1/students/{id}</code></td>
+<td>Gets a student by id</td>
+<td><code>200 OK</code> or <code>404</code></td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/v1/students</code></td>
+<td>Lists all students</td>
+<td><code>200 OK</code></td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td><code>/api/v1/students/{id}</code></td>
+<td>Updates a student</td>
+<td><code>200 OK</code> or <code>404</code></td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/api/v1/students/{id}</code></td>
+<td>Deletes a student</td>
+<td><code>204 No Content</code></td>
+</tr>
+</tbody>
+</table>
+<p>Request body (<code>StudentsRequestDTO</code>):</p>
+<pre><code class="language-json">{
+  &quot;firstName&quot;: &quot;Juan&quot;,
+  &quot;lastName&quot;: &quot;Perez&quot;,
+  &quot;email&quot;: &quot;juan.perez@example.com&quot;
+}
+</code></pre>
+<p>Inputs are validated with Bean Validation (<code>@NotNull</code> and <code>@NotBlank</code>). <code>ResourceNotFoundException</code> is translated to <code>404</code> by <code>GlobalExceptionHandler</code>.</p>
+<p>Exploration tools:</p>
+<ul>
+<li>Swagger UI: http://localhost:8101/swagger-ui.html</li>
+<li>OpenAPI JSON: http://localhost:8101/v3/api-docs</li>
+<li>H2 console: http://localhost:8101/h2-console (JDBC URL <code>jdbc:h2:mem:studentsdb</code>, user <code>sa</code>, no password)</li>
+</ul>
+<hr />
+<h2>Running the application</h2>
+<h3>Requirements</h3>
+<ul>
+<li>JDK 21</li>
+<li>Maven 3.9 or later</li>
+<li>An <strong>Anthropic API key</strong>, only if you want the full flow with Claude</li>
+</ul>
+<h3>1. Set the API key (optional, recommended)</h3>
+<p>The key is read from the <code>ANTHROPIC_API_KEY</code> environment variable. It is never stored in the repository.</p>
+<pre><code class="language-bash">export ANTHROPIC_API_KEY=your_anthropic_api_key
+</code></pre>
+<p>Without a key, the MCP server and the REST API still work. Only the conversation with Claude fails (steps 3 to 6 of the demo), and the failure is logged with a clear message.</p>
+<h3>2. Start the application</h3>
+<pre><code class="language-bash">mvn spring-boot:run
+</code></pre>
+<p>The application listens on <strong>http://localhost:8101</strong>. On startup, the <code>CommandLineRunner</code> runs the end-to-end demo in the console.</p>
+<hr />
+<h2>End-to-end demo</h2>
+<p><code>AppClientSample</code> (a <code>CommandLineRunner</code>) runs the full circuit in the console: <strong>MCP client → MCP server → Claude → real tool → database</strong>.</p>
+<pre><code>[Step 1] &quot;initialize&quot; handshake from the MCP client to the MCP server (/mcp)
+[Step 2] tools/list: the MCP server exposes 6 tools
+           - create_student, get_student, list_students,
+             update_student, delete_student, count_students
+[Step 3] Delegates to StudentCreationAgent
+[Step 4] The 6 tools are available to Claude (tool calling)
+[Step 5] Prompt: &quot;Crea un nuevo estudiante llamado Juan Perez con correo juan.perez@example.com&quot;
+   &gt;&gt; Claude decides to call create_student with {&quot;firstName&quot;:&quot;Juan&quot;,&quot;lastName&quot;:&quot;Perez&quot;,...}
+      The MCP client sends tools/call → StudentsMcpTools → StudentsService → H2
+[Step 6] Claude's final answer confirms the student was created and returns its ID
+</code></pre>
+<p>The <code>initialize</code> handshake is triggered manually, not during context startup, so that Tomcat is already listening on port 8101 before the client connects. This avoids a race condition, which is why <code>spring.ai.mcp.client.initialized=false</code> is set.</p>
+<p>Each tool invocation is printed step by step by <code>LoggingToolCallback</code>, a decorator that wraps every <code>ToolCallback</code> without changing its behavior.</p>
+<hr />
+<h2>Configuration</h2>
+<p>All settings are in <code>src/main/resources/application.properties</code>. Highlights:</p>
+<pre><code class="language-properties">server.port=8101
+
+# MCP server
+spring.ai.mcp.server.name=students-mcp-server
+spring.ai.mcp.server.protocol=STREAMABLE
+spring.ai.mcp.server.type=SYNC
+
+# MCP client (demo, connects to the same server)
+spring.ai.mcp.client.type=SYNC
+spring.ai.mcp.client.initialized=false
+spring.ai.mcp.client.streamable-http.connections.students-server.url=http://localhost:8101
+spring.ai.mcp.client.streamable-http.connections.students-server.endpoint=/mcp
+
+# Anthropic (Claude). The key comes from the environment and is not stored here.
+spring.ai.anthropic.api-key=${ANTHROPIC_API_KEY:}
+spring.ai.anthropic.chat.options.model=claude-sonnet-4-6
+spring.ai.anthropic.chat.options.max-tokens=1024
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Environment variable</th>
+<th>Purpose</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ANTHROPIC_API_KEY</code></td>
+<td>Anthropic API key for the Claude agent</td>
+<td>Only for the Claude flow</td>
+</tr>
+</tbody>
+</table>
+<p>A commented MySQL block is included in the <code>.properties</code> file. Uncomment it for production use. Its password comes from the environment (<code>SPRING_DATASOURCE_PASSWORD</code>), not from the file.</p>
+<hr />
+<h2>Technical note: why the server first exposed 0 tools</h2>
+<p>In Spring AI, <strong>annotating methods with <code>@Tool</code> inside a <code>@Component</code> is not enough</strong> for the MCP server to publish them. The server only registers tools that come from a <code>List&lt;McpServerFeatures.SyncToolSpecification&gt;</code> bean, consumed by <code>McpServerAutoConfiguration.mcpSyncServer(...)</code>.</p>
+<p>That bean is normally generated by <code>ToolCallbackConverterAutoConfiguration</code>, which collects every <code>ToolCallback</code> and <code>ToolCallbackProvider</code> in the context and converts them. That auto-configuration would also trigger the client's <code>SyncMcpToolCallbackProvider</code> at startup, which connects to a Tomcat that is not listening yet. This is a race condition, so the auto-configuration is excluded in the <code>.properties</code> file:</p>
+<pre><code class="language-properties">spring.autoconfigure.exclude=org.springframework.ai.mcp.server.common.autoconfigure.ToolCallbackConverterAutoConfiguration
+</code></pre>
+<p>The side effect of that exclusion was that <strong>no one converted the server's tools, so the server exposed 0 tools</strong>.</p>
+<p><strong>Solution</strong> (<code>McpToolsConfig</code>): build the <code>List&lt;SyncToolSpecification&gt;</code> directly from the business tools only, without touching the client's provider:</p>
+<pre><code class="language-java">@Bean
+public List&lt;McpServerFeatures.SyncToolSpecification&gt; studentsToolSpecifications(StudentsMcpTools tools) {
+    ToolCallback[] callbacks = MethodToolCallbackProvider.builder()
+            .toolObjects(tools)
+            .build()
+            .getToolCallbacks();
+    return McpToolUtils.toSyncToolSpecifications(callbacks);
+}
+</code></pre>
+<p>This solves both problems: the server publishes its 6 tools, and the client race condition stays avoided.</p>
+<hr />
+<h2>Docker</h2>
+<pre><code class="language-bash"># Build and start (uses the external network scaffold-net)
+./start_students.sh
+# equivalent to: docker compose up --build -d
+</code></pre>
+<ul>
+<li><strong>Dockerfile:</strong> multi-stage build. The build stage uses <code>eclipse-temurin:21-jdk-alpine</code> with Maven. The runtime stage uses <code>eclipse-temurin:21-jre-alpine</code>.</li>
+<li><strong>docker-compose.yml:</strong> publishes port <code>8101</code>. It also starts a Kafka health-check container that waits for the Kafka broker <code>scaffold-kafka</code>, and the application starts after that check.</li>
+<li>The <code>scaffold-net</code> network is external. Create it if it does not exist: <code>docker network create scaffold-net</code>.</li>
+</ul>
+<hr />
+<h2>Testing</h2>
+<pre><code class="language-bash">mvn test
+</code></pre>
+<p>The test suite includes <code>StudentsServiceTest</code>, which covers the service layer. The Docker build uses <code>-DskipTests</code> to speed up the image, so run the tests locally with the command above.</p>
+<hr />
+<h2>Known limitations</h2>
+<ul>
+<li>The database is in memory (H2) and is recreated on every start (<code>ddl-auto=create-drop</code>). Data does not persist between runs.</li>
+<li>The H2 console is enabled and accessible from other hosts (<code>web-allow-others=true</code>). Disable it outside local development.</li>
+<li>The Docker Compose Kafka health check refers to a broker that the application does not use.</li>
+<li>The demo that runs on startup calls the Anthropic API and needs a valid key to complete steps 3 to 6.</li>
+</ul>
+<hr />
+<h2>Author</h2>
+<p><strong>Jose Said Olano Garcia</strong>. A demonstration project for <strong>Spring AI + MCP + Claude</strong> integration. Feel free to use it as a reference.</p>
+  </article>
+  <footer>Source and documentation: <a href="https://github.com/josesaid/studentsWithMCPServer">github.com/josesaid/studentsWithMCPServer</a> · <a href="https://josesaid.github.io/">josesaid.github.io</a></footer>
+</main>
+</body>
+</html>
