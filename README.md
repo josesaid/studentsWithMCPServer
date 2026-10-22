@@ -1,5 +1,7 @@
 # studentsWithMCPServer
 
+![Java: 21](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white) ![Spring_Boot: 3.5.15](https://img.shields.io/badge/Spring_Boot-3.5.15-6DB33F?logo=springboot&logoColor=white) ![Spring_AI: 1.1.8](https://img.shields.io/badge/Spring_AI-1.1.8-6DB33F) ![Model: Anthropic_Claude](https://img.shields.io/badge/Model-Anthropic_Claude-412991?logo=anthropic&logoColor=white) ![Database: H2](https://img.shields.io/badge/Database-H2-0F6AB8)
+
 **Project page:** https://josesaid.github.io/studentsWithMCPServer/
 
 A **Spring Boot 3.5** microservice that manages students and shows, end to end, how an **MCP server** ([Model Context Protocol](https://modelcontextprotocol.io)) can expose business logic as *tools* that a language model (**Claude** from Anthropic) calls autonomously through *tool calling*.
